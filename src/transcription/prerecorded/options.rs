@@ -17,6 +17,8 @@ pub struct Options {
     profanity_filter: Option<bool>,
     redact: Vec<Redact>,
     diarize: Option<bool>,
+    smart_format: Option<bool>,
+    paragraphs: Option<bool>,
     ner: Option<bool>,
     multichannel: Option<Multichannel>,
     alternatives: Option<usize>,
@@ -272,6 +274,8 @@ impl OptionsBuilder {
             profanity_filter: None,
             redact: Vec::new(),
             diarize: None,
+            smart_format: None,
+            paragraphs: None,
             ner: None,
             multichannel: None,
             alternatives: None,
@@ -496,6 +500,18 @@ impl OptionsBuilder {
     /// ```
     pub fn diarize(mut self, diarize: bool) -> Self {
         self.0.diarize = Some(diarize);
+        self
+    }
+
+    /// Enable Smart Format.
+    pub fn smart_format(mut self, smart_format: bool) -> Self {
+        self.0.smart_format = Some(smart_format);
+        self
+    }
+
+    /// Enable paragraphs
+    pub fn paragraphs(mut self, paragraphs: bool) -> Self {
+        self.0.paragraphs = Some(paragraphs);
         self
     }
 
@@ -1081,6 +1097,8 @@ impl Serialize for SerializableOptions<'_> {
             profanity_filter,
             redact,
             diarize,
+            smart_format,
+            paragraphs,
             ner,
             multichannel,
             alternatives,
@@ -1137,6 +1155,14 @@ impl Serialize for SerializableOptions<'_> {
 
         if let Some(diarize) = diarize {
             seq.serialize_element(&("diarize", diarize))?;
+        }
+
+        if let Some(smart_format) = smart_format {
+            seq.serialize_element(&("smart_format", smart_format))?;
+        }
+
+        if let Some(paragraphs) = paragraphs {
+            seq.serialize_element(&("paragraphs", paragraphs))?;
         }
 
         if let Some(ner) = ner {
@@ -1415,6 +1441,28 @@ mod serialize_options_tests {
 
         check_serialization(&Options::builder().tier(Tier::Base).build(), "tier=base");
     }
+
+    #[test]
+    fn smart_format() {
+        check_serialization(
+            &Options::builder().smart_format(true).build(),
+            "smart_format=true",
+        );
+
+        check_serialization(&Options::builder().tier(Tier::Base).smart_format(true).build(), "tier=base&smart_format=true");
+    }
+
+    #[test]
+    fn paragraphs() {
+        check_serialization(
+            &Options::builder().paragraphs(true).build(),
+            "paragraphs=true",
+        );
+
+        check_serialization(&Options::builder().tier(Tier::Base).paragraphs(true).build(), "tier=base&paragraphs=true");
+    }
+
+
 
     #[test]
     fn model() {
